@@ -1,0 +1,44 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: parcel-app
+    ports:
+      - "8000:8000"
+    environment:
+      # БД
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: parcel_db
+      POSTGRES_USER: parcel_user
+      POSTGRES_PASSWORD: parcel_password
+      # Redis
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      - postgres
+      - redis
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: parcel-postgres
+    environment:
+      POSTGRES_DB: parcel_db
+      POSTGRES_USER: parcel_user
+      POSTGRES_PASSWORD: parcel_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: parcel-redis
+    ports:
+      - "6379:6379"
+
+volumes:
+  postgres_data:
