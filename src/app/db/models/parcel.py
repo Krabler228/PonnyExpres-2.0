@@ -7,6 +7,7 @@ from sqlalchemy import (
     Integer,
     Numeric,
     String,
+    Column,
 )
 
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -44,3 +45,4 @@ class Parcel(Base):
         default=datetime.utcnow,
     )
     parcel_type: Mapped[ParcelType] = relationship()
+    tracking_code = Column(String(32), unique=True, nullable=False)
