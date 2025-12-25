@@ -1,17 +1,21 @@
 import uuid
+
 from typing import List, Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.app.schemas.parcels import (
+from src.app.schemas.parcel import (
     ParcelCreate,
     ParcelOut,
     ParcelTypeRead,
+    ParcelsListResponse,
+    PublicParcelOut,
 )
-from src.db.models.parcel import Parcel, ParcelType
+from src.app.db.models.parcel import Parcel, ParcelType
 
-from src.app.schemas.parcel import ParcelsListResponse
+
+from fastapi import HTTPException, status
 
 
 def generate_tracking_code() -> str:
@@ -89,3 +93,47 @@ class ParcelService:
             page=page,
             page_size=page_size,
         )
+
+    async def get_parcel_by_id(
+        self,
+        db: AsyncSession,
+        session_id: str,
+        parcel_id: int,
+    ) -> ParcelOut:
+        query = select(Parcel).where(
+            Parcel.id == parcel_id,
+            Parcel.session_id == session_id,
+        )
+        result = await db.execute(query)
+        parcel = result.scalars().first()
+
+        if parcel is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Посылка не найдена",
+            )
+
+        return ParcelOut.model_validate(parcel)
+
+    async def get_public_by_tracking_code(
+        self,
+        db: AsyncSession,
+        tracking_code: str,
+    ) -> PublicParcelOut:
+        query = select(Parcel).where(Parcel.tracking_code == tracking_code)
+        result = await db.execute(query)
+        parcel = result.scalars().first()
+
+        if parcel is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Посылка не найдена",
+            )
+
+        public = PublicParcelOut.model_validate(parcel)
+        if parcel.delivery_cost_rub is None:
+            public.delivery_cost_rub = "Цена не рассчитана"
+        else:
+            public.delivery_cost_rub = str(parcel.delivery_cost_rub)
+
+        return public

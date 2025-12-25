@@ -2,13 +2,13 @@ from typing import List
 from fastapi import APIRouter, Depends, Request, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.app.schemas.parcels import (
+from src.app.schemas.parcel import (
     ParcelCreate,
     ParcelOut,
     ParcelTypeRead,
     ParcelsListResponse,
 )
-from src.app.db.sessions import get_db
+from src.app.db.session import get_db
 from src.app.services.parcels import ParcelService
 
 router = APIRouter(prefix="/parcels", tags=["parcels"])
@@ -22,13 +22,21 @@ router = APIRouter(prefix="/parcels", tags=["parcels"])
 async def create_parcel(
     request: Request,
     data: ParcelCreate,
-    # db: AsyncSession = Depends(get_db),
-    # service: ParcelService = Depends(),
+    db: AsyncSession = Depends(get_db),
+    service: ParcelService = Depends(),
 ):
     session_id = getattr(request.state, "session_id", None)
     if not session_id:
-        raise HTTPException(status_code=401, detail="Нужно ввести айди сессии")
-    raise HTTPException(status_code=501, detail="Заказ еще не создан")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Требуется сессия",
+        )
+    parcel = await service.create_parcel(
+        db=db,
+        session_id=session_id,
+        data=data,
+    )
+    return parcel
 
 
 @router.get(
@@ -36,10 +44,11 @@ async def create_parcel(
     response_model=List[ParcelTypeRead],
 )
 async def get_parcel_types(
-    # db: AsyncSession = Depends(get_db),
-    # service: ParcelService = Depends(),
+    db: AsyncSession = Depends(get_db),
+    service: ParcelService = Depends(),
 ):
-    raise HTTPException(status_code=501, detail="Заказ еще не создан")
+    types = await service.get_parcel_types(db=db)
+    return types
 
 
 @router.get(
@@ -76,3 +85,27 @@ async def list_parcels(
         page=page,
         page_size=page_size,
     )
+
+
+@router.get(
+    "/{parcel_id}",
+    response_model=ParcelOut,
+)
+async def get_parcel_detail(
+    request: Request,
+    parcel_id: int,
+    db: AsyncSession = Depends(get_db),
+    service: ParcelService = Depends(),
+):
+    session_id = getattr(request.state, "session_id", None)
+    if not session_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Требуется сессия"
+        )
+    parcel = await service.get_parcel_by_id(
+        db=db,
+        session_id=session_id,
+        parcel_id=parcel_id,
+    )
+
+    return parcel

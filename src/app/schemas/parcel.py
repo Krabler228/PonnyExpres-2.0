@@ -36,7 +36,6 @@ class ParcelCreate(BaseModel):
 
 class ParcelOut(ParcelBase):
     id: int
-    session_id: str
     tracking_code: str
     created_at: datetime
 
@@ -44,7 +43,6 @@ class ParcelOut(ParcelBase):
 
 
 class PublicParcelOut(BaseModel):
-    id: int
     name: str
     weight: Decimal
     parcel_type_id: int

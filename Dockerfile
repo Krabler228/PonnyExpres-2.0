@@ -19,11 +19,14 @@ RUN curl -sSL https://install.python-poetry.org | python3 -
 ENV PATH="$POETRY_HOME/bin:$PROJECT_DIR/.venv/bin:$PATH"
 
 WORKDIR $PROJECT_DIR
+ENV PYTHONPATH="/app/src"
 
 COPY pyproject.toml poetry.lock* ./
 
 RUN poetry install --no-root --only main
 
 COPY src ./src
+COPY alembic.ini .
+COPY migrations ./migrations
 
 CMD ["poetry", "run", "uvicorn", "src.app.main:app", "--host", "0.0.0.0", "--port", "8000"]
