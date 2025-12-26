@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   app:
     build:
@@ -10,11 +8,18 @@ services:
       - "8000:8000"
     env_file:
       - .env
-    command: >
-      poetry run uvicorn src.app.main:app
-      --host 0.0.0.0
-      --port 8000
-      --workers 5
+    command:
+      - poetry
+      - run
+      - uvicorn
+      - src.app.main:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+      - --workers
+      - "5"
+    working_dir: /app
     depends_on:
       postgres:
         condition: service_healthy
@@ -25,6 +30,60 @@ services:
       interval: 30s
       timeout: 5s
       retries: 3
+
+  celery_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: parcel-celery-worker
+    command:
+      - poetry
+      - run
+      - celery
+      - -A
+      - src.app.tasks.celery_app
+      - worker
+      - --loglevel=info
+      - --concurrency=1
+    working_dir: /app  # Критично для Celery
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "poetry", "run", "celery", "-A", "src.app.tasks.celery_app", "inspect", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  celery_beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: parcel-celery-beat
+    command:
+      - poetry
+      - run
+      - celery
+      - -A
+      - src.app.tasks.celery_app
+      - beat
+      - --loglevel=info
+    working_dir: /app
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+
 
   postgres:
     image: postgres:16-alpine
@@ -47,6 +106,11 @@ services:
     container_name: parcel-redis
     ports:
       - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:

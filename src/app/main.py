@@ -5,6 +5,7 @@ from src.app.dependencies.session import SessionId
 
 from src.app.api.parcels import router as parcels_router
 from src.app.api.public import router as public_router
+from src.app.api.debug import router as debug_router
 
 app = FastAPI(
     title=settings.app.name,
@@ -16,6 +17,7 @@ setup_session_middleware(app)
 
 app.include_router(parcels_router)
 app.include_router(public_router)
+app.include_router(debug_router)
 
 
 @app.get("/health")
