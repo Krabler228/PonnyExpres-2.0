@@ -3,24 +3,28 @@ name = "ponnyexpres-2-0"
 version = "0.1.0"
 description = "Проектик мой проектик"
 authors = [
-    {name = "Денис",email = "KrawaBurawa@yandex.ru"}
+    { name = "Денис", email = "KrawaBurawa@yandex.ru" }
 ]
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "fastapi (==0.115.0)",
-    "uvicorn[standart] (==0.32.0)",
-    "pydantic-settings (==2.5.2)",
-    "psycopg[binary] (>=3.3.2,<4.0.0)",
-    "redis[hiredis] (==5.3.0)",
-    "celery[redis] (==5.4.0)",
-    "alembic (>=1.17.2,<2.0.0)",
-    "asyncpg (>=0.31.0,<0.32.0)",
-    "pyyaml (>=6.0,<7.0)"
+    "fastapi==0.115.0",
+    "uvicorn[standard]==0.32.0",
+    "pydantic-settings==2.5.2",
+    "psycopg[binary]>=3.3.2,<4.0.0",
+    "redis[hiredis]==5.3.0",
+    "celery[redis]==5.4.0",
+    "alembic>=1.17.2,<2.0.0",
+    "asyncpg>=0.31.0,<0.32.0",
+    "pyyaml>=6.0,<7.0",
+    "requests>=2.32.0,<3.0.0",
+    "fakeredis>=2.0.0"
 ]
 
 [tool.poetry]
-packages = [{include = "ponnyexpres_2"}]
+packages = [
+    { include = "src", from = "." }
+]
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
@@ -28,10 +32,10 @@ build-backend = "poetry.core.masonry.api"
 
 [dependency-groups]
 dev = [
-    "ruff (==0.7.0)",
-    "pre-commit (==4.0.0)",
-    "pytest (==8.3.3)",
-    "pytest-asyncio (==0.24.0)",
-    "httpx (==0.27.2)",
-    "psycopg2-binary (>=2.9.11,<3.0.0)"
+    "ruff==0.7.0",
+    "pre-commit==4.0.0",
+    "pytest==8.3.3",
+    "pytest-asyncio==0.24.0",
+    "httpx==0.27.2",
+    "psycopg2-binary>=2.9.11,<3.0.0"
 ]

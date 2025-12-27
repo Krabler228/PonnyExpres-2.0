@@ -22,7 +22,7 @@ celery_app.conf.update(
 
 celery_app.conf.beat_schedule = {
     "recalculate-delivery-cost-every-5-min": {
-        "task": "src.app.tasks.recalculate_delivery.recalculate_delivery_costs",  # <- ИСПРАВИМ, когда создадим таску
+        "task": "src.app.tasks.recalculate_delivery.recalculate_delivery_costs",
         "schedule": crontab(minute="*/5"),
     }
 }

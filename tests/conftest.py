@@ -4,14 +4,14 @@ import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from app.core.config import settings
-from app.db.base import Base
+from src.app.core.config import settings
+from src.app.db.base import Base
 
 from fastapi import FastAPI, Depends
 from fastapi.testclient import TestClient
 
-from app.middleware.session import setup_session_middleware
-from app.dependencies.session import get_session_id
+from src.app.middleware.session import setup_session_middleware
+from src.app.dependencies.session import get_session_id
 
 
 @pytest.fixture(scope="session")

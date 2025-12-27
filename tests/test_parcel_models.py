@@ -2,7 +2,7 @@ from decimal import Decimal
 
 from sqlalchemy import select, delete
 
-from app.db.models.parcel import Parcel, ParcelType
+from src.app.db.models.parcel import Parcel, ParcelType
 
 
 def test_create_parcel(db_session):
@@ -21,6 +21,7 @@ def test_create_parcel(db_session):
         parcel_type_id=pt.id,
         declared_value_usd=Decimal("100.00"),
         delivery_cost_rub=Decimal("500.00"),
+        tracking_code="TRACK-123",
     )
     db_session.add(parcel)
     db_session.commit()

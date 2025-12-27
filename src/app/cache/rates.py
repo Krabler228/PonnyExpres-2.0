@@ -35,7 +35,7 @@ class UsdRateCache:
             host=config.host,
             port=config.port,
             db=config.db,
-            decode_responses=True,  # получать строки, а не bytes
+            decode_responses=True,
         )
 
     def get_rate(self) -> float:
@@ -48,7 +48,6 @@ class UsdRateCache:
             try:
                 return float(cached_value)
             except (TypeError, ValueError):
-                # битое значение в кэше — игнорируем и перезапрашиваем
                 pass
 
         rate = self._fetch_from_cbr()
@@ -60,7 +59,6 @@ class UsdRateCache:
                 str(rate),
             )
         except redis.RedisError:
-            # падение Redis не должно ломать сервис
             pass
 
         return rate
