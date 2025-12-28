@@ -1,5 +1,3 @@
-.github/workflows/ci.yml
-text
 name: CI
 
 on:
