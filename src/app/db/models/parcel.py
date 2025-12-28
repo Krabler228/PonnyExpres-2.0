@@ -26,9 +26,7 @@ class Parcel(Base):
     __tablename__ = "parcels"
 
     id: Mapped[int] = mapped_column(
-        BigInteger().with_variant(
-            INTEGER, "sqlite"
-        ),  # 🔥 BIGINT для Postgres, INTEGER для SQLite
+        BigInteger().with_variant(INTEGER, "sqlite"),
         primary_key=True,
         autoincrement=True,
     )
