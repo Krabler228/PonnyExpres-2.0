@@ -3,7 +3,6 @@
 Revision ID: 598884a14baa
 Revises: c1bcc70b6c65
 Create Date: 2025-12-17 20:36:01.821319
-
 """
 
 from typing import Sequence, Union
@@ -37,4 +36,6 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.execute("DELETE FROM parcel_types WHERE id IN (1,2,3)")
+    # сначала удаляем записи, которые на них ссылаются
+    op.execute("DELETE FROM parcels WHERE parcel_type_id IN (1, 2, 3)")
+    op.execute("DELETE FROM parcel_types WHERE id IN (1, 2, 3)")

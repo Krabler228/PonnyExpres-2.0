@@ -8,8 +8,8 @@ Create Date: 2025-12-24 12:12:53.165871
 
 from typing import Sequence, Union
 
-from alembic import op
-import sqlalchemy as sa
+from alembic import op  # noqa
+import sqlalchemy as sa  # noqa
 
 
 # revision identifiers, used by Alembic.
@@ -20,11 +20,15 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.add_column(
-        "parcels",
-        sa.Column("tracking_code", sa.String(length=32), nullable=False),
-    )
+    """No-op: tracking_code уже создаётся в c1bcc70b6c65."""
+    # Колонка tracking_code добавлена в таблицу parcels
+    # прямо в миграции c1bcc70b6c65_create_parcels,
+    # поэтому здесь ничего делать не нужно.
+    pass
 
 
 def downgrade() -> None:
-    op.drop_column("parcels", "tracking_code")
+    """No-op: отдельного удаления tracking_code не требуется."""
+    # При откате до base таблица parcels будет удалена
+    # в миграции c1bcc70b6c65, вместе с колонкой tracking_code.
+    pass

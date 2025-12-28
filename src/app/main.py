@@ -3,6 +3,10 @@ from src.app.config.settings import settings
 from src.app.middleware.session import setup_session_middleware
 from src.app.dependencies.session import SessionId
 
+
+from src.app.logging.config import setup_logging
+from src.app.logging.middleware import LoggingMiddleware
+
 from src.app.api.parcels import router as parcels_router
 from src.app.api.public import router as public_router
 from src.app.api.debug import router as debug_router
@@ -14,6 +18,10 @@ app = FastAPI(
 )
 
 setup_session_middleware(app)
+
+
+setup_logging(app)
+app.add_middleware(LoggingMiddleware)
 
 app.include_router(parcels_router)
 app.include_router(public_router)

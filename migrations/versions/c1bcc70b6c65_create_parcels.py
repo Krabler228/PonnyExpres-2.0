@@ -44,11 +44,13 @@ def upgrade() -> None:
             "delivery_cost_rub", sa.Numeric(precision=12, scale=2), nullable=True
         ),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
+        sa.Column("tracking_code", sa.String(length=32), nullable=False),
         sa.ForeignKeyConstraint(
             ["parcel_type_id"],
             ["parcel_types.id"],
         ),
         sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint("tracking_code"),
     )
     op.create_index(
         op.f("ix_parcels_delivery_cost_rub"),

@@ -24,12 +24,17 @@ services:
       postgres:
         condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    volumes:
+      - ./logs:/app/logs
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
+      start_period: 30s
 
   celery_worker:
     build:
@@ -45,14 +50,18 @@ services:
       - worker
       - --loglevel=info
       - --concurrency=1
-    working_dir: /app  # Критично для Celery
+    working_dir: /app
     env_file:
       - .env
     depends_on:
       postgres:
         condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    volumes:
+      - ./logs:/app/logs
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "poetry", "run", "celery", "-A", "src.app.tasks.celery_app", "inspect", "ping"]
@@ -81,9 +90,12 @@ services:
       postgres:
         condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    volumes:
+      - ./logs:/app/logs
     restart: unless-stopped
-
 
   postgres:
     image: postgres:16-alpine
@@ -111,6 +123,26 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
+
+  mongodb:
+    image: mongo:7.0
+    container_name: parcel-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root
+    healthcheck:
+      test: ["CMD-SHELL", "echo 'db.runCommand(\"ping\").ok' | mongosh localhost:27017/test --quiet || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 40s
 
 volumes:
   postgres_data:
+  mongodb_data:
+  logs:

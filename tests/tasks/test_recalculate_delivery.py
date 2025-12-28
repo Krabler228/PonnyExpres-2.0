@@ -2,36 +2,39 @@ from decimal import Decimal
 from unittest.mock import patch
 
 import pytest
-from sqlalchemy import create_engine, select, Table, Column, Integer
+from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 
+
 from src.app.db.base import Base
-from src.app.db.models.parcel import Parcel
-from src.app.tasks import recalculate_delivery
-from src.app.tasks.recalculate_delivery import recalculate_delivery_costs
+from src.app.db.models.parcel import Parcel, ParcelType
+from src.app.tasks.recalculate_delivery import recalculate_delivery_costs, UsdRateCache
 
 TEST_SYNC_DB_URL = "sqlite:///:memory:"
 
 
 @pytest.fixture
-def sync_session():
-    engine = create_engine(TEST_SYNC_DB_URL)
-
-    Table(
-        "parcels",
-        Base.metadata,
-        Column("id", Integer, primary_key=True, autoincrement=True),
-        extend_existing=True,
+def sync_engine():
+    engine = create_engine(
+        TEST_SYNC_DB_URL,
+        connect_args={"check_same_thread": False},
     )
-
+    Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
-    SessionLocal = sessionmaker(bind=engine)
+    yield engine
+    Base.metadata.drop_all(bind=engine)
+    engine.dispose()
+
+
+@pytest.fixture
+def sync_session(sync_engine):
+    SessionLocal = sessionmaker(bind=sync_engine, autoflush=False, autocommit=False)
     session = SessionLocal()
     try:
         yield session
     finally:
+        session.rollback()
         session.close()
-        engine.dispose()
 
 
 def test_recalculate_delivery_costs_updates_parcels(sync_session, monkeypatch):
@@ -43,11 +46,11 @@ def test_recalculate_delivery_costs_updates_parcels(sync_session, monkeypatch):
         fake_get_sync_session,
     )
 
-    with patch.object(
-        recalculate_delivery.UsdRateCache,
-        "get_rate",
-        return_value=90.0,
-    ):
+    parcel_type = ParcelType(id=1, name="test_type")
+    sync_session.add(parcel_type)
+    sync_session.commit()
+
+    with patch.object(UsdRateCache, "get_rate", return_value=90.0):
         parcel1 = Parcel(
             session_id="s1",
             name="P1",
@@ -80,3 +83,4 @@ def test_recalculate_delivery_costs_updates_parcels(sync_session, monkeypatch):
         )
 
         assert all(p.delivery_cost_rub is not None for p in refreshed)
+        assert len(refreshed) == 2
