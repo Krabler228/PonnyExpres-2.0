@@ -7,7 +7,7 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from app.core.config import settings
+from src.app.core.config import settings
 from src.app.db.base import Base
 import src.app.db.models.parcel  # noqa: F401  ← важно: регистрирует модели в Base.metadata
 
