@@ -1,9 +1,8 @@
-import asyncio
-from collections.abc import AsyncGenerator, Generator
+from collections.abc import AsyncGenerator
 
-import pytest
 import pytest_asyncio
 from httpx import AsyncClient
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -17,26 +16,22 @@ from src.app.db.session import get_db
 from src.app.main import app as real_app
 
 
-@pytest.fixture(scope="session")
-def event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
-
-
 TEST_DB_URL = settings.test_database_url
 
 
-@pytest_asyncio.fixture(scope="session")
+@pytest_asyncio.fixture(scope="function")
 async def async_engine() -> AsyncGenerator[AsyncEngine, None]:
     engine = create_async_engine(TEST_DB_URL, echo=False, future=True)
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        await conn.execute(
+            text("TRUNCATE TABLE parcels, parcel_types RESTART IDENTITY CASCADE")
+        )
     yield engine
     await engine.dispose()
 
 
-@pytest_asyncio.fixture(scope="session")
+@pytest_asyncio.fixture(scope="function")
 async def async_session_maker(
     async_engine: AsyncEngine,
 ) -> AsyncGenerator[async_sessionmaker[AsyncSession], None]:
@@ -53,9 +48,9 @@ async def async_session_maker(
 @pytest_asyncio.fixture(scope="function")
 async def db_session(
     async_session_maker: async_sessionmaker[AsyncSession],
-) -> AsyncSession:
-    session = async_session_maker()
-    return session
+) -> AsyncGenerator[AsyncSession, None]:
+    async with async_session_maker() as session:
+        yield session
 
 
 @pytest_asyncio.fixture(scope="function")

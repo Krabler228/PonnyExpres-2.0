@@ -53,7 +53,6 @@ async def test_create_parcel_invalid_payload_returns_422(
 
     payload = {
         "name": "Bad parcel",
-        # weight отсутствует
         "parcel_type_id": pt.id,
         "declared_value_usd": "100.00",
     }
