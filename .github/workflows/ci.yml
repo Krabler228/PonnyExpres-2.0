@@ -1,12 +1,4 @@
-Ниже — готовый ci.yml, который не хранит пароли в репозитории и закрывает твои текущие проблемы с переменными окружения (обязательный DATABASE_URL) и путями (PYTHONPATH=".").
-​
 
-1) Какие Secrets создать в GitHub
-В репозитории GitHub создай Repository secrets (Settings → Secrets and variables → Actions): POSTGRES_USER, POSTGRES_PASSWORD, CODECOV_TOKEN (если используешь Codecov v4), можно оставить POSTGRES_DB как обычную строку в workflow.
-​
-
-2) Готовый .github/workflows/ci.yml
-text
 name: CI
 
 on:
